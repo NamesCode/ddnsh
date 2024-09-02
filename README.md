@@ -19,7 +19,7 @@ Consult your package manager on how to install curl if it is not installed alrea
 ## Installation
 
 ```sh
-curl -s -o ./ddnsh.sh [INSERT THE RAW URL HERE];
+curl -s -o ./ddnsh.sh https://raw.githubusercontent.com/NamesCode/ddnsh/main/ddnsh.sh;
 chmod +x ./ddnsh.sh
 ```
 
@@ -80,7 +80,7 @@ Ideally this should be run on the same user that your web facing server is run o
 ```sh
 mkdir ~/.local; \
 mkdir ~/.local/bin/; \
-curl -s -o ~/.local/bin/ddnsh.sh [INSERT THE RAW URL HERE]; \
+curl -s -o ~/.local/bin/ddnsh.sh https://raw.githubusercontent.com/NamesCode/ddnsh/main/ddnsh.sh; \
 chmod +x ~/.local/bin/ddnsh.sh; \
 (crontab -l; echo "DDNSH_CF_ZONEID='yourzoneid'
 DDNSH_CF_APIKEY='yourcloudflareapikey'
