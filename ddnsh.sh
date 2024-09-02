@@ -5,59 +5,57 @@ DOMAIN="$1"
 IPV="$2"
 
 # Set initial vars
-CHANGED=true
 if [ ! "$DDNSH_CF_PROXY" = false ]; then
 	DDNSH_CF_PROXY=true
 fi
 
+HOST=$(uname -n)
+
 case "$IPV" in
 A)
 	LOCAL_IPS=$(curl -s https://ipv4.icanhazip.com/)
-	FOREIGN_IPS=$(host -t A "$DOMAIN" | awk '/has address/ { print $4 }')
 	;;
 AAAA)
 	LOCAL_IPS=$(curl -s https://ipv6.icanhazip.com/)
-	FOREIGN_IPS=$(host -t AAAA "$DOMAIN" | awk '/has IPv6 address/ { print $5 }')
 	;;
 *)
 	LOCAL_IPS=$({
 		curl -s https://ipv4.icanhazip.com/
 		curl -s https://ipv6.icanhazip.com/
 	})
-	FOREIGN_IPS=$({
-		host -t A "$DOMAIN" | awk '/has address/ { print $4 }'
-		host -t AAAA "$DOMAIN" | awk '/has IPv6 address/ { print $5 }'
-	})
 	;;
 esac
 
 # Start logic
-for FOREIGN_IP in $FOREIGN_IPS; do
-	for LOCAL_IP in $LOCAL_IPS; do
-		if [ "$FOREIGN_IP" = "$LOCAL_IP" ]; then
-			CHANGED=false
-			break
-		fi
-	done
-done
+RECORDS=$(
+	curl -s --request GET \
+		--url "https://api.cloudflare.com/client/v4/zones/beaa649556618108a535c4e9b32473c5/dns_records?comment.contains=DDNSH-$HOST" \
+		--header "Content-Type: application/json" \
+		--header "Authorization: Bearer $DDNSH_CF_APIKEY" | jq -c '.result.[]'
+)
 
-if [ $CHANGED = true ]; then
+for RECORD in $RECORDS; do
 	TYPE="A"
 	for LOCAL_IP in $LOCAL_IPS; do
-			RECORDS=$(host -t txt ddnsh."$(echo "$DOMAIN" | awk -F. '{print $(NF-1)"."$NF}')" | sed -n 's/.*"\([^"]*\)".*/\1/p')
-			curl --request POST --url https://api.cloudflare.com/client/v4/zones/$DDNSH_CF_ZONEID/dns_records/ \
+		if [ ! $(echo $RECORD | jq -r '.content') = $LOCAL_IP ] && [ $(echo $RECORD | jq -r '.type') = $TYPE ]; then
+			RESULT=$(curl -s --request PATCH \
+				--url https://api.cloudflare.com/client/v4/zones/$DDNSH_CF_ZONEID/dns_records/$(echo $RECORD | jq -r '.id') \
 				--header "Content-Type: application/json" \
 				--header "Authorization: Bearer $DDNSH_CF_APIKEY" \
 				--data "{
-        \"content\": \"$LOCAL_IP\",
-        \"name\": \"$DOMAIN\",
-        \"proxied\" $DDNSH_CF_PROXY):,
-        \"type\": \"$TYPE\",
-        \"comment\": \"Record created by DDNSH!\",
-        \"tags\": [],
-        \"ttl\": 300
-      }"
-			TYPE="AAAA"
+            \"comment\": \"DDNSH-$HOST\",
+            \"name\": \"$DOMAIN\",
+            \"content\": \"$LOCAL_IP\",
+            \"ttl\": 300,
+            \"type\": \"$TYPE\",
+            \"tags\": []
+          }")
+			if [ "$(echo $RESULT | jq -r '.success')" = true ]; then
+				echo "Successfully updated! :3 | Updated $DOMAIN: $(echo $RECORD | jq -r '.content') -> $LOCAL_IP"
+			else
+				echo "Failed to update. Error: $(echo $RESULT | jq '.errors')"
+			fi
 		fi
+		TYPE="AAAA"
 	done
-fi
+done

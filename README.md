@@ -9,7 +9,10 @@ Other DNS providers can be supported in future if an issue gets risen for them, 
 
 ## Dependencies
 
-The only dependency you need is curl.
+You will need:
+- curl
+- jq
+
 Curl is often preinstalled on most Linux systems, however it is not on *BSD systems.
 Consult your package manager on how to install curl if it is not installed already.
 
@@ -22,34 +25,31 @@ chmod +x ./ddnsh.sh
 
 ## Usage
 
-`./ddns.sh [Your domain] [Bool: Overwrite DNS records tagged with 'DDNSH'?] [OPTIONAL: Edit A records or AAAA records or both; inputs A/AAAA/(leave blank for both)]`
+`./ddnsh.sh [Your domain] [OPTIONAL: Edit A records or AAAA records or both; inputs A/AAAA/(leave blank for both)]`
 
 An example:
-`./ddns.sh example.com true`
-
-### With overwrite enabled
-
-Enabling overwrite will require some more manual setup unless you allow [the script to naively overwrite every A and AAAA record](#naive-auto-setup).
-
-To enable overwrite, create a txt record at `ddnsh.your.domain` and input each IP (accepts IPv4 and IPv6) address you want updated, one per line.
-You will have to update this file with more IP's as you add servers that use DDNSH on other dynamic IP networks.
-
-An example:
-```txt
-127.0.0.1
-::1
-```
-
-#### Naive auto setup
-
-If you set the `DDNSH_NAIVE_SETUP` to true the script will create a txt record under `ddnsh.your.domain`,
-naively the script will take all the ip's from the specified records (The optional: A/AAAA/both) and insert them into the txt file.
-
-```sh
-export DDNSH_NAIVE_SETUP=true
-```
+`./ddnsh.sh example.com true`
 
 ### With Cloudflare
+
+#### Record comments
+
+In order for DDNSH to know which records it should update it uses comments on the records which can get queried.
+To get DDNSH working for your A/AAAA records all you have to do is add `DDNSH-[The hostname of your machine from uname -n]`.
+
+The hostname is added so that you can run DDNSH across multiple networks with dynamic IP's for the same domain.
+
+Example:
+```sh
+# On your machine
+Web@ServerBox> uname -n
+ServerBox
+
+# In the record comment
+DDNSH-ServerBox
+```
+
+#### Env vars
 
 Firstly, you will have to find your domains [zone id](https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/).
 Secondly you're going to need an [API token](https://dash.cloudflare.com/profile/api-tokens).
@@ -74,7 +74,7 @@ HISTFILE="$HISTFILE_COPY" unset HISTFILE_COPY
 ## Quick start
 
 I recommend using this quick setup script if you want something opinionated that "just works"™.
-This will install the script at `~/local/bin/` and create a crontab for this user running this script every 5 minutes.
+This will install the script at `~/.local/bin/` and create a crontab for this user running this script every 5 minutes.
 Ideally this should be run on the same user that your web facing server is run on.
 
 ```sh
@@ -84,7 +84,7 @@ curl -s -o ~/.local/bin/ddnsh.sh [INSERT THE RAW URL HERE]; \
 chmod +x ~/.local/bin/ddnsh.sh; \
 (crontab -l; echo "DDNSH_CF_ZONEID='yourzoneid'
 DDNSH_CF_APIKEY='yourcloudflareapikey'
-*/5 * * * * /home/$USER/.local/bin/ddnsh.sh your-site.here true > /dev/null") | crontab -
+*/5 * * * * /home/$USER/.local/bin/ddnsh.sh your-site.here > /dev/null") | crontab -
 ```
 
 **NOTE**: This quick start script will **ONLY** work if your cron allows setting env vars inside itself. 
