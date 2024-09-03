@@ -5,10 +5,6 @@ DOMAIN="$1"
 IPV="$2"
 
 # Set initial vars
-if [ ! "$DDNSH_CF_PROXY" = false ]; then
-	DDNSH_CF_PROXY=true
-fi
-
 HOST=$(uname -n)
 
 case "$IPV" in

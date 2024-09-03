@@ -53,7 +53,6 @@ DDNSH-ServerBox
 
 Firstly, you will have to find your domains [zone id](https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/).
 Secondly you're going to need an [API token](https://dash.cloudflare.com/profile/api-tokens).
-Lastly, you can specify if you want records to proxy through Cloudflare. By default, it will however you disable this through `DDNSH_CF_PROXY=false`.
 
 I recommend you use the Zone DNS template for the token.
 The token will need to have Zone DNS editing access.
@@ -65,7 +64,7 @@ Once you have both of these, you'll have to pass them in with the DDNSH_CF env v
 HISTFILE_COPY="$HISTFILE" HISTFILE="/dev/null"
 
 # Run this line as many times as you need for each domain.
-DDNSH_CF_ZONEID="yourzoneid" DDNSH_CF_APIKEY="yourcloudflareapikey" DDNSH_CF_PROXY=false ./ddnsh.sh args-here
+DDNSH_CF_ZONEID="yourzoneid" DDNSH_CF_APIKEY="yourcloudflareapikey" ./ddnsh.sh args-here
 
 # Run when your finished to turn back on shell history.
 HISTFILE="$HISTFILE_COPY" unset HISTFILE_COPY
