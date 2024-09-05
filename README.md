@@ -25,10 +25,6 @@ chmod +x ./ddnsh.sh
 
 ## Usage
 
-`./ddnsh.sh [Your domain] [OPTIONAL: Edit A records or AAAA records or both; inputs A/AAAA/(leave blank for both)]`
-
-An example:
-`./ddnsh.sh example.com true`
 
 ### With Cloudflare
 
@@ -64,7 +60,7 @@ Once you have both of these, you'll have to pass them in with the DDNSH_CF env v
 HISTFILE_COPY="$HISTFILE" HISTFILE="/dev/null"
 
 # Run this line as many times as you need for each domain.
-DDNSH_CF_ZONEID="yourzoneid" DDNSH_CF_APIKEY="yourcloudflareapikey" ./ddnsh.sh args-here
+DDNSH_CF_ZONEID="yourzoneid" DDNSH_CF_APIKEY="yourcloudflareapikey" ./ddnsh.sh
 
 # Run when your finished to turn back on shell history.
 HISTFILE="$HISTFILE_COPY" unset HISTFILE_COPY
@@ -83,7 +79,7 @@ curl -s -o ~/.local/bin/ddnsh.sh https://raw.githubusercontent.com/NamesCode/ddn
 chmod +x ~/.local/bin/ddnsh.sh; \
 (crontab -l; echo "DDNSH_CF_ZONEID='yourzoneid'
 DDNSH_CF_APIKEY='yourcloudflareapikey'
-*/5 * * * * /home/$USER/.local/bin/ddnsh.sh your-site.here > /dev/null") | crontab -
+*/5 * * * * /home/$USER/.local/bin/ddnsh.sh > /dev/null") | crontab -
 ```
 
 **NOTE**: This quick start script will **ONLY** work if your cron allows setting env vars inside itself. 
